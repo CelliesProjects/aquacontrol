@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title> </title>
+<meta charset="utf-8">
+<script>
+var waitTime = 50;     //time in ms between calls to the controller -- might overload and reset when set too low!  
+var DEBUG_API = false;   //if set to true then 'debugURL' will be prepended to the (relative) api URLs
+
+
+var apiPrefix = '';
+var debugURL = 'http://thuis.wasietsmet.nl:88';
+if (DEBUG_API) {
+  apiPrefix = debugURL;
+}
+</script>
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">  <!--prevent favicon requests-->
+<meta name="description" content="Aquacontrol system setup page">
+<meta name="author" content="Cellie 2016">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<style>
+html, body{
+  //height:100%;
+  margin:0 auto;
+  background-color:grey;
+  text-align:center;
+  width:860px;
+  min-width:860px;
+  font-variant: small-caps;
+  font-size:20px;
+  color:black;
+}
+
+a {
+  color:black;
+  text-decoration:none;
+}
+
+#confirmDialog{
+  display: table;
+  position: absolute;
+  top: 10px;
+  right: 0;
+  left: 0;
+  z-index: 100;
+  background-color: grey;
+  width:400px;
+  height:300px;
+  margin: auto; 
+  text-align:center;   
+}
+
+#confirmText{
+  display:table-cell;
+  vertical-align:middle;
+}    
+
+.shadowedBox{
+  box-shadow: 0px 0px 13px 0px rgba(0,0,0,1);     
+  border: solid 1px black;
+  border-radius: 15px;
+  overflow:hidden;
+  margin:10px 0;
+  }
+
+.menuSection{
+  display:none;
+}
+
+div, p{
+  margin:3px 0;
+}
+
+div.timeSetup{
+  margin:3px 0;
+  min-height:40px;
+}
+
+p.item{
+  text-align:right;
+  background-color:beige;
+}
+
+.statusBar.item {
+  text-align:center;
+}
+
+p.title{
+  background-color:beige;
+  margin: 0 0 3px;
+}
+
+p.status{
+  text-align:center;
+}
+
+.noSelect {
+        user-select: none;
+        -moz-user-select: none;
+        -khtml-user-select: none;
+        -webkit-user-select: none;
+        -o-user-select: none;
+} 
+
+input, select{
+  width:130px;
+  height:35px;
+  padding: 0px 5px;
+  margin:8px;
+	font-variant: small-caps;
+  font-size:18px;
+  text-align:center;
+  vertical-align:middle;
+  border:solid 1px black;
+  box-shadow: 0px 0px 2px 0px rgba(0,0,0,1);     
+  border-radius: 5px;
+  }
+
+input.colorPicker{
+  width:35px;
+}
+
+input.nightLightSlider, 
+#pwmFreqSlider, 
+#pwmDepthSlider,
+#cpuSpeedSlider,
+#ntpDelaySlider{
+  border:none;
+  box-shadow:none;
+  padding:0;
+}
+input#hostNameField{
+  font-variant: small-caps;
+  font-size:18px;
+  //width:20em;
+}
+#settingsMenu input[type="button"]{
+  width:170px;
+}
+.percentInput{
+  width: 65px;
+}
+  
+#topContainer {
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  width:860px;
+  margin:3px auto;
+  border: solid 1px yellow;
+}
+
+#machineDescription{
+  color:blue;
+}
+</style>
+</head>
+<body>
+<div id="confirmDialog" class="shadowedBox"><div id="confirmText">Loading...</div></div>  
+<p  class="shadowedBox" style="background-color:beige;"><a href="index.htm">INDEX</a>&nbsp;-&nbsp;<a href="editor.htm">EDITOR</a></p>
+<p  class="shadowedBox" id="machineDescription">&nbsp;</p>
+<div id="settingsMenu" class="shadowedBox">
+  <p class="title">Aquacontrol Setup Menu</p>
+  <p class="title">
+    <input type="button" value="LIGHT SETUP" onClick="$('.menuSection, #infoSettings').hide(); $('#lightSettings').show();">
+    <input type="button" value="CHANNEL SETUP" onClick="$('.menuSection, #infoSettings').hide(); $('#nightLightSettings').show();">
+    <input type="button" value="TIME SETUP" onClick="$('.menuSection, #infoSettings').hide(); $('#timeSettings').show();">
+    <input type="button" value="DEVICE SETUP" onClick="$('.menuSection, #infoSettings').hide(); $('#deviceSetup').show();">
+  </p>
+</div>
+
+<div id="infoSettings" class="shadowedBox ">
+      <p class="item status title" id="programName">&nbsp;</p>
+      <p class="item status">&nbsp;</p>
+      <p class="item status" id="version">Version: </p>
+      <p class="item status" id="cpuSpeedInfo">CPU speed: </p>
+      <p class="item status">&nbsp;</p>
+      <p class="item status" id="bootTime">System start: </p>
+      <p class="item status">&nbsp;</p>      
+      <p class="item status" id="ntpStatus"></p>
+      <p class="item status">&nbsp;</p>          
+      <p class="item status">Hardware + software by <a href="http://wasietsmet.nl/tag/aquacontrol" target="_blank">Cellie</a></p>
+</div>
+
+<div id="lightSettings" class="shadowedBox menuSection">
+  <p class="title">LIGHT SETTINGS</p>
+  <p class="statusBar item" id="lightStatus">&nbsp;</p>
+  <p class="item">
+    <input id="lightsOn" type="button" value="LEDS ON" onClick='$("#lightStatus").load( apiPrefix + "/api/lightson");sleepFor(waitTime);'>
+    <input id="lightsOff" type="button" value="LEDS OFF" onClick='$("#lightStatus").load( apiPrefix + "/api/lightsoff");sleepFor(waitTime);'>
+    <input id="lightsProgram" type="button" value="PROGRAM" onClick='$("#lightStatus").load( apiPrefix + "/api/lightsprogram");sleepFor(waitTime);'>
+  </p>
+</div>
+<div id="nightLightSettings" class="shadowedBox menuSection">
+  <p class="title">CHANNEL SETUP</p>
+  <p class="statusBar item" id="nightLightStatus">&nbsp;</p>      
+  <p class="item"> 1: Name<input class=" channelname" type="text">Color:<input type="color" class="colorPicker">Min level:<input class="percentInput" type="text" value="0" disabled="disabled"><input type="range" class="nightLightSlider" value="0" min="0" max="90"></p>
+  <p class="item"> 2: Name<input class=" channelname" type="text">Color:<input type="color" class="colorPicker">Min level:<input class="percentInput" type="text" value="0" disabled="disabled"><input type="range" class="nightLightSlider" value="0" min="0" max="90"></p>
+  <p class="item"> 3: Name<input class=" channelname" type="text">Color:<input type="color" class="colorPicker">Min level:<input class="percentInput" type="text" value="0" disabled="disabled"><input type="range" class="nightLightSlider" value="0" min="0" max="90"></p>
+  <p class="item"> 4: Name<input class=" channelname" type="text">Color:<input type="color" class="colorPicker">Min level:<input class="percentInput" type="text" value="0" disabled="disabled"><input type="range" class="nightLightSlider" value="0" min="0" max="90"></p>
+  <p class="item"> 5: Name<input class=" channelname" type="text">Color:<input type="color" class="colorPicker">Min level:<input class="percentInput" type="text" value="0" disabled="disabled"><input type="range" class="nightLightSlider" value="0" min="0" max="90"></p>
+</div>
+<div id="timeSettings" class="shadowedBox menuSection">
+  <p class="title">TIME SETTINGS</p>
+  <p class="statusBar item" id="timeStatus"><span id="sysTime"></span></p>      
+  <p class="item" id="ntpSetDelayBar">NTP sync interval<input id="ntpDelay" class="percentInput" type="text" disabled="disabled"><input type="range" id="ntpDelaySlider" value="24" min="6" max="24" step="6"></p>
+  <p class="item" id="ntpBar">Sync NTP now.<input id="setClock" type="button" value="NTP SYNC" onClick="syncClock()"></p>
+  <p class="item"><span>Set timezone.</span>
+  <select id="timeZoneSelector">
+    <option value="-13">UTC-13:00</option>
+    <option value="-12">UTC-12:00</option>
+    <option value="-11">UTC-11:00</option>
+    <option value="-10">UTC-10:00</option>
+    <option value="-9">UTC-9:00</option>
+    <option value="-8">UTC-8:00</option>
+    <option value="-7">UTC-7:00</option>
+    <option value="-6">UTC-6:00</option>
+    <option value="-5">UTC-5:00</option>
+    <option value="-4">UTC-4:00</option>
+    <option value="-3">UTC-3:00</option>
+    <option value="-2">UTC-2:00</option>
+    <option value="-1">UTC-1:00</option>
+    <option value="0">UTC+00:00</option>
+    <option value="1">UTC+1:00</option>
+    <option value="2">UTC+2:00</option>
+    <option value="3">UTC+3:00</option>
+    <option value="4">UTC+4:00</option>
+    <option value="5">UTC+5:00</option>
+    <option value="6">UTC+6:00</option>
+    <option value="7">UTC+7:00</option>
+    <option value="8">UTC+8:00</option>
+    <option value="9">UTC+9:00</option>
+    <option value="10">UTC+10:00</option>
+    <option value="11">UTC+11:00</option>
+    <option value="12">UTC+12:00</option>
+    <option value="13">UTC+13:00</option>
+  </select>
+  <!--<input id="timeZone" type="button" value="SET ZONE">-->
+  </p>
+  <!--<p class="item">Set the system clock manually to:<input class="timeInput" type="time" name="time"  pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" required><input id="adjustClock" type="button" value="SET CLOCK"></p>-->
+  <!--<p class="item">Set Daylight Savings Time.<input id="dstButton" type="button" value="ENABLED"></p>-->
+</div>
+<div id="deviceSetup" class="shadowedBox menuSection">
+  <p class="title">DEVICE SETTINGS</p>
+  <p class="statusBar item" id="deviceStatus">&nbsp;</p>      
+  <p class="item">Hostname<input id="hostNameField" type="text" ><input id="hostNameButton" type="button" value="SET NAME"></p>
+  <p class="item"><span class="item">PWM Frequency</span><input id="pwmFreq" class="percentInput" type="text" value="1" disabled="disabled"><input type="range" id="pwmFreqSlider" value="1" min="1" max="1000"></p>
+  <p class="item"><span class="item">PWM depth</span><input id="pwmDepth" class="percentInput" type="text" value="1023" disabled="disabled"><input type="range" id="pwmDepthSlider" value="0" min="1" max="10"></p>
+  <p class="item"><span class="item">CPU speed</span><input id="cpuSpeed" class="percentInput" type="text" value="80" disabled="disabled"><input type="range" id="cpuSpeedSlider" value="80" min="80" max="160" step="80"></p>
+</div>      
+
+
+<script>  
+   
+  /**
+  function timeInSeconds(timeAsString) {        /// input formatted like 12:34:56 - returns value only to full  minute accuracy
+    var thisTimeInSeconds = timeAsString.slice(0,2) * 3600;
+    thisTimeInSeconds += timeAsString.slice(3,5) * 60;
+    return thisTimeInSeconds
+  }
+**/
+
+function setupNTPDelay(){
+  $("#lightStatus").load( apiPrefix + "/api/ntpdelay", function( data ) {
+    console.log("not implemented~!");
+  })
+}
+
+function updateStatus() {
+  $.get( apiPrefix + '/api/getpercentage', function( data ) {
+    var channelValue = data.split(',');
+    $('#sysTime').html(channelValue[5]);
+    $('#lightStatus').html(channelValue[6]);
+  })
+}
+
+var lightStatusTimer;  
+
+function delayedLightStatus(){
+  clearTimeout(lightStatusTimer);
+  lightStatusTimer = setTimeout(function() { $("#lightStatus").load( apiPrefix + "/api/status");},4000);
+}
+
+function syncClock(){
+  $("#timeStatus").html("Syncing system clock...");
+  $("#timeStatus").load( apiPrefix + "/api/ntpsync");
+}  
+    
+function updateDSTbutton( data ){
+  if ( data == "DST is enabled" ) {
+    $("#dstButton").val("ENABLED");
+  }
+  if ( data == "DST is disabled" ) {
+    $("#dstButton").val("DISABLED");        
+  }  
+}
+
+function sleepFor( sleepDuration ){
+    var now = new Date().getTime();
+    while(new Date().getTime() < now + sleepDuration){ /* do nothing */ } 
+}
+
+//////////////////////////////////////////////////////
+/////////////////////////////////////////////////////
+
+
+$(document).ready( function() {
+  
+  sleepFor(waitTime);
+    
+  if (DEBUG_API) {
+    apiPrefix = debugURL;
+    $("#machineDescription").html("!!NO PRODUCTION MACHINE. DEBUG API USED!!");
+  } else {
+    sleepFor( waitTime );    
+    $.get( apiPrefix + "/api/hostname", function( data ) {
+      $( "#machineDescription" ).html( data );
+      document.title = data;
+    });  
+  }  
+  
+  sleepFor(waitTime);
+  
+  // get the last NTP update time and display
+  $.get( apiPrefix + "/api/lastntpsync", function( data ) {
+    var nextTime = new Date( data * 1000 );
+    $("#ntpStatus").html( "Last NTP sync: " + nextTime.toString().slice(0,10) + " - " + nextTime.toString().slice(16,24) );
+  });
+  
+  sleepFor(waitTime);
+  
+  $.get( apiPrefix + "/api/ntpdelay", function( data ) {
+    $("#ntpDelaySlider").val( data / 3600 );
+    $("#ntpDelay").val( data / 3600 + "h"  );
+  });
+  
+  sleepFor(waitTime);
+
+  // fill the default info menu
+  
+  $.get( apiPrefix + "/api/channelcolors ", function( data ) {
+    var numberOfChannels = 5;
+    var color = data.split('|');
+    console.log( color );
+    for (thisChannel = 0; thisChannel < numberOfChannels;thisChannel++){
+      $(".colorPicker").eq( thisChannel ).val( color[ thisChannel ] );
+    }  
+  });
+    
+  sleepFor(waitTime);
+  
+  //ask for and set the channelnames
+  $.get( apiPrefix + "/api/channelnames",function( data ) {
+    var numberOfChannels = 5;
+    var newName = data.split('|');
+    console.log( "new channel names: " + newName );
+    for (thisChannel = 0; thisChannel < numberOfChannels; thisChannel++){
+      $(".channelname").eq( thisChannel ).val( newName[ thisChannel ] );
+    }
+  });
+
+  sleepFor(waitTime);
+  
+  $.get( apiPrefix + "/api/cpuspeed",function( data ){
+    $("#cpuSpeed").val( data + "MHz" );
+    $("#cpuSpeedSlider").val( data );
+    $("#cpuSpeedInfo").append( data + "Mhz" );
+  });
+  
+  sleepFor(waitTime);
+
+  $.get( apiPrefix + "/api/programname ", function( data ){
+    $("#programName").append( data  );
+  });
+/*
+  sleepFor(waitTime);
+
+  $.get( apiPrefix + "/api/cpuspeed ", function( data ){
+    $("#cpuSpeedInfo").append( data + "Mhz" );
+  });
+*/
+  sleepFor(waitTime);
+
+  $.get( apiPrefix + "/api/version ", function( data ){
+    $("#version").append( data );
+  });
+
+  sleepFor(waitTime);
+
+  $.get( apiPrefix + "/api/boottime ", function( data ){
+    // * 1000  because JS timers are millisecond based, while a C++ time_t is second based. (on arduino & esp8266)
+    var bootDate = new Date( data * 1000 );
+    $("#bootTime").append( bootDate.toString() );
+  });
+  
+  sleepFor(waitTime);
+
+  $.get( apiPrefix + "/api/hostname",function( data ){
+    if ( DEBUG_API) {
+      $("#machineDescription").html("!!NO PRODUCTION MACHINE. DEBUG API USED!!");
+      $("#hostNameField").val( data );
+    } else {     
+      $("#machineDescription").html( data );
+      $("#hostNameField").val( data );
+    }
+  });
+
+  sleepFor(waitTime);
+
+  updateStatus();
+  var repeatTimer = setInterval(updateStatus,1000);
+
+  sleepFor(waitTime);
+  
+  //get the PWM depth
+  $.get( apiPrefix + "/api/pwmdepth",function( data ) {
+    console.log( data );
+    $("input#pwmDepth").val(data);
+    $("input#pwmDepthSlider").val( data );
+  });
+  
+  sleepFor(waitTime);
+  
+  //get the DST setting and display that on the button
+  $.get( apiPrefix + "/api/dst",function( data ) {
+    updateDSTbutton( data );
+  });
+  
+  sleepFor(waitTime);
+  
+  //get the timeZone and show the right zone 
+  $.get( apiPrefix + "/api/timezone",function( data ) {
+    $("#timeZoneSelector").val( data ).change();
+  });
+  
+  sleepFor(waitTime);
+
+  //get the pwmfrequency
+  $.get( apiPrefix + '/api/pwmfreq', function( data ) {
+    $("input#pwmFreqSlider").val( data );
+    $("input#pwmFreq").val( data + "Hz" );    
+  });
+  
+  sleepFor(waitTime);
+
+  //get the nightlightlevel from the mcu
+  $.get( apiPrefix + "/api/nightlightlevel", function( data ){
+    var channel = data.split("-"); 
+    $("#nightLightSettings input.percentInput").each( function( index ) { 
+       $(this).val(channel[index] + "%");
+       $("#nightLightSettings .nightLightSlider").eq( index ).val( channel[ index ] * 10 );
+    })
+    $( "#confirmDialog" ).hide();      ///should be called from last request
+  });
+
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+//event handlers
+
+
+  //ntp update delay 
+  $("body").on("input","#ntpDelaySlider", function(){
+    $("input#ntpDelay").val($(this).val() + "h" );
+  });
+  
+  $("body").on("change","#ntpDelaySlider", function(){
+    $("input#ntpDelay").val($(this).val() + "h" );
+    $.get( apiPrefix + "/api/setntpsyncdelay?" + $(this).val() * 60 * 60, function( data ) {
+      var nextSync = new Date( data * 1000);
+      $("#timeStatus").html( "Next NTP sync: " + nextSync.toString().slice(0,10) + " - " + nextSync.toString().slice(16,24) );
+    });
+  });
+
+  //color pickers & display
+  $("body").on("change",".colorPicker",function(){
+    console.log( $(this).val().split("#").pop().replace(/(\r\n|\n|\r)/gm,"") );    ///remove linbreaks //pffffewh
+    //send only the raw hex value eg 'ffffff' instead of '#ffffff' as the '#' causes problems TODO: improve this
+    //call the mcu with appropriate settings
+    $("#nightLightStatus").load( apiPrefix + "/api/color?" + $(this).index(".colorPicker") + "," + $(this).val().split("#").pop() );   
+  });
+
+  //CPU speed slider & display
+  $("body").on("input","#cpuSpeedSlider",function(){
+    $("input#cpuSpeed").val( $("#cpuSpeedSlider").val() + "MHz");
+  });
+
+  $("body").on("change","#cpuSpeedSlider",function(){
+    $("#cpuSpeed").val( $("#cpuSpeedSlider").val() + "MHz" );
+    $("#deviceStatus").load( apiPrefix + "/api/cpuspeed?" + $("input#cpuSpeedSlider").val() );
+  });
+  
+  //PWM slider & display
+  $("#deviceSetup").on("input","input#pwmDepthSlider",function(){
+    $("input#pwmDepth").val( this.value * 1023 );
+  });
+  
+  $("#deviceSetup").on("change ","input#pwmDepthSlider",function(){
+    $("input#pwmDepth").val( this.value * 1023 );
+    $.get( apiPrefix + "/api/pwmdepth?" + $("input#pwmDepth").val(),function( data ){
+      $("#deviceStatus").html( data );
+      sleepFor(waitTime);
+    });
+  });
+    
+  $("#timeSettings").on("click","input#dstButton", function() {
+    var newState;
+    if ($("input#dstButton").val() == "ENABLED" ) {
+      newState = "disabled";
+    }
+    if ($("input#dstButton").val() == "DISABLED" ) {
+      newState = "enabled";
+    }
+    $.get( apiPrefix + "/api/dst?" + newState,function( data ) {
+      updateDSTbutton( data );
+    } );
+  });
+  
+  $("#timeSettings").on("click","input#adjustClock", function() {      
+    if ( $("div.timeSetup input.timeInput").val() != "" ) {
+      $("#lightStatus").load( apiPrefix + "/api/setclock?" + $("div.timeSetup input.timeInput").val()); 
+    }
+  });
+  
+  $("#timeSettings").on("mouseup keyup","select#timeZoneSelector", function() {
+    $("#timeStatus").load( apiPrefix + "/api/settimezone?" + $("#timeZoneSelector option:selected").val() );
+  });
+  
+  $( "#nightLightSettings" ).on( "input" ,".nightLightSlider" , function() {
+    //console.log($(this).parent('p').index() - 2 ,' ',this.value); //minus 2 because of title and status bars
+    $("#nightLightSettings input.percentInput:eq(" + ( $(this).parent('p').index() - 2) + ")").val( ( this.value / 100 ) + "%" );
+  });
+
+  $("body").on("change",".nightLightSlider",function() {
+    $("#nightLightSettings input.percentInput:eq(" + ( $(this).parent('p').index() - 2) + ")").val( ( this.value / 100 ) + "%" );
+    //$('#nightLightSlider, input[type="button"]').attr('disabled',true);
+    $.get( apiPrefix + "/api/nightlightlevel?" + ( $(this).parent('p').index() - 2) + "-" + $(this).val()/100, function( data ){
+      //$('#nightLightSlider").focus();
+      $("#nightLightStatus").html(data);
+      //$('#nightLightSlider, input[type="button"]').attr('disabled',false);
+    });
+    sleepFor(waitTime);
+  });    
+  
+  $("body").on("input","#pwmFreqSlider",function() {
+    $("#pwmFreq").val( $(this).val() + "Hz" );
+  });
+  
+  $("body").on("change","#pwmFreqSlider",function() {
+    $("#pwmFreq").val( $(this).val() + "Hz" );
+    $.get( apiPrefix + '/api/pwmfreq?' + $('input#pwmFreq').val() , function( data ) {
+      $('#deviceStatus').html( data );   
+    });
+    sleepFor(waitTime);
+  });  
+  
+  $('body').on('click','input#hostNameButton',function() {
+    $.get ( apiPrefix + '/api/hostname?' + $('input#hostNameField').val() , function( data ) {
+      $('#lightStatus').html( data );
+    });
+  });    
+  
+  $("body").on("change",".channelname",function(){
+    console.log( $(this).index(".channelname") );
+    $("#nightLightStatus").load( apiPrefix + "/api/name?" +  $(this).index(".channelname") + "," + $(this).val() );
+  });
+    
+});  
+</script>  
+</body>
+</html>

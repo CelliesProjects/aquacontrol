@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title> </title>
+<meta charset="utf-8">
+<script>
+var DEBUG_API = false;
+var apiPrefix = '';
+var debugURL = 'http://thuis.wasietsmet.nl:88';
+var waitTime = 50;     //time in ms between calls to the controller -- might overload and reset when set too low!
+</script>
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">  <!--prevent favicon requests-->
+<meta name="description" content="Aquacontrol Timer Editor Interface">
+<meta name="author" content="Cellie 2016">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jcanvas/16.7.3/jcanvas.js"></script>
+<style>
+html, body{
+  //height:100%;
+  margin:0 auto;
+  background-color:grey;
+  text-align:center;
+  width:860px;
+  min-width:860px;
+  font-variant: small-caps;
+  font-size:20px;
+}
+
+#machineDescription{
+  color:blue;
+  background-color:grey;
+}
+
+#confirmDialog{
+  display: table;
+  position: absolute;
+  top: 10px;
+  //bottom: 0;
+  right: 0;
+  left: 0;
+  z-index: 100;
+  background-color: grey;
+  border: solid 1px black;
+  border-radius: 15px;
+  width:400px;
+  height:300px;
+  margin: auto; 
+  text-align:center;   
+  //box-shadow: 0px 0px 43px 0px rgba(0,0,0,1);     
+}
+#confirmText{
+  display:table-cell;
+  vertical-align:middle;
+}
+    
+a {
+  color:black;
+  text-decoration:none;
+}
+
+    
+input, select {
+  height:35px;
+  width:60px;
+  margin:8px;
+	font-variant: small-caps;
+  font-size:18px;
+  padding: 0px 5px;
+  text-align:center;
+  vertical-align:middle;
+  border:solid 1px black;
+  }    
+    
+ input[type="button"] {
+  width:130px;
+  font-size:18px;
+}       
+    
+p{
+  margin:0;
+  background-color:beige;
+  //height:50px;
+}
+
+p *{
+  vertical-align:middle;
+}
+
+p#newTimer{
+  overflow:hidden;
+}
+
+input[type="time"] {
+  width:auto;
+  -moz-appearance:textfield;
+}
+
+input[type='time']::-webkit-outer-spin-button,
+input[type='time']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin:-6px;
+}
+
+.shadowedBox{
+  box-shadow: 0px 0px 13px 0px rgba(0,0,0,1);     
+}
+
+
+.shadowedBox, div.name p, div.pct p  {
+  box-shadow: 0px 0px 13px 0px rgba(0,0,0,1);
+  border:solid 1px black;
+  border-radius: 15px;
+  margin:10px 0;
+}
+
+
+
+input{
+  box-shadow: 0px 0px 2px 0px rgba(0,0,0,1);     
+  border-radius: 5px;
+}
+
+#channelContainer {
+  position:absolute;
+  top:80px;
+  width:860px;
+  left:0;
+  right:0;
+  margin:3px auto;
+  border: solid 1px black;
+  border-radius: 15px;
+  overflow: auto;
+}
+
+#timerContainer {
+  overflow:auto;
+  position:absolute;
+  top:360px;
+  bottom:0;
+  left:0;
+  right:0;
+  width:860px;
+  margin: 0 auto 10px;
+  border: solid 1px black;
+  border-radius: 15px;
+}
+
+#timerControlBar{
+}
+
+#timerList {
+  position:absolute;
+  top:102px;
+  bottom:0;
+  left:0;
+  right:0;
+}
+#timerList p.item{
+  background-color:grey;
+}
+
+#graphContainer{
+    position: relative;
+    width:860px;
+    height:160px;
+    background-color:grey;
+    margin:auto;
+}
+#channelControlBar{
+  left: 0;
+  right: 0;
+  top: 0;
+  margin: 0 0 3px;
+}
+#channelEditCanvas{
+  width:860px;
+  height:160px;
+  border:none;
+  left: 0; 
+  right:0; 
+  top: 40px;
+  background-color:rgba(0,0,0,0.62);
+}
+  </style>
+</head>
+<body>
+  
+<p class="shadowedBox"><a href="index.htm">INDEX</a>&nbsp;-&nbsp;<a href="setup.htm">SETUP</a></p>
+<p id="machineDescription" class="shadowedBox">&nbsp;</p>     
+  
+  <div id="confirmDialog" class="shadowedBox" ><div id="confirmText">Loading...<br></div></div>  
+<!--  <a href="index.htm">status</a>&nbsp;-&nbsp;<a href="setup.htm">setup</a>
+  <p id="machineDescription"><script></script></p>
+
+-->
+
+  <div id="channelContainer" class="shadowedBox">
+    <p>
+      <input id="storeButton" type="button" value="APPLY" title="Save and use these timers.">
+      <input id="reloadButton" type="button" value="LOAD" title="Reload the current timers.">
+      <input id="clearButton" type="button" value="CLEAR" title="Clear the editor.">
+    </p>    
+    <p id="graphContainer">
+      <canvas id="channelEditCanvas" width="860" height="160"> 
+      </canvas>  
+    </p>
+    <p id="newTimer">
+      <!--<input class="timeInput" type="time" name="time" min="00:00" max="23:59" pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" required>-->
+      New timer:<input class="timeInput" type="text" name="time" min="00:00" max="23:59" readonly>
+      <!--&nbsp;&nbsp;--><input id="percentageInput" type="text" value="0" placeholder="0" min="00" max="100" readonly><!--<label for="percentageInput"> % </label>-->
+      <input class="addButton" type="button" value="ADD" style="display:none">
+    </p> 
+  </div>  
+  
+  <div id="timerContainer" class="shadowedBox">
+      <p id="channelControlBar">
+        <input class="channelSelectionButton" type="button" value="channel1">
+        <input class="channelSelectionButton" type="button" value="channel2">
+        <input class="channelSelectionButton" type="button" value="channel3">
+        <input class="channelSelectionButton" type="button" value="channel4">
+        <input class="channelSelectionButton" type="button" value="channel5">
+      </p>
+      <p id="timerControlBar">
+        <input id="goStart"   type="button" value="<<">
+        <input id="goBack"    type="button" value="<">
+        <input id="goForward" type="button" value=">">
+        <input id="goEnd"     type="button" value=">>">
+      </p>   
+      <div id="timerList" style="overflow:auto">
+      </div>        
+  </div> 
+  
+<script>
+  /*
+function mapFloat( x,  in_min,  in_max,  out_min,  out_max)
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}  
+*/
+/*
+if (DEBUG_API) {
+  apiPrefix = debugURL;
+  $("#machineDescription").html("!!NO PRODUCTION MACHINE. DEBUG API USED!!");
+} else {
+  $("#machineDescription").html("Loading machine description...").load( apiPrefix + "/api/hostname");
+  sleepFor(waitTime);
+}
+*/
+  
+function timeInSeconds(timeAsString) {        /// input formatted like 12:34:56 - returns value only to full  minute accuracy
+  var thisTimeInSeconds = timeAsString.slice(0,2) * 3600;
+  thisTimeInSeconds += timeAsString.slice(3,5) * 60;
+  return thisTimeInSeconds
+}
+
+function formattedTime(secondsSinceMidnight) {
+  var hours = Math.floor(secondsSinceMidnight / 3600);
+  var minutes = Math.floor((secondsSinceMidnight - (hours * 3600)) / 60);
+  var seconds = secondsSinceMidnight - (hours * 3600) - (minutes * 60);    
+  if (hours   < 10) {hours   = "0"+hours;}
+  if (minutes < 10) {minutes = "0"+minutes;}
+  if (seconds < 10) {seconds = "0"+seconds;}    
+  return hours + ':' + minutes + ':' + seconds;
+}
+
+
+function drawGraphAxisAndHours() {
+  //draw the outline box for the graph
+  $currentCanvas.drawLine({
+      layer:true,
+      type:'line',
+      name:'backgroundLayer',
+      strokeStyle: graphColor,
+      strokeWidth: 2,
+      rounded: true,
+      x1:  30,   y1:30,
+      x2:  30, y2:130,
+      x3: 830, y3:130,
+      x4: 830, y4:30
+  }); 
+  //draw the dashed percentage indicator lines
+  for ( percentageIndicator = 0; percentageIndicator <= 100; percentageIndicator += 25 ) {
+    $currentCanvas.drawLine({
+        layer:true,
+        //fillStyle: '#9cf',
+        strokeStyle: graphColor,
+        strokeWidth: 0.25,
+        strokeDash: [2],
+        x1: 30, y1: 130 - percentageIndicator,
+        x2: 830, y2: 130 - percentageIndicator             
+    });      
+  }    
+  //draw the percentage indicators left side
+  for ( percentageIndicator = 0; percentageIndicator <= 100; percentageIndicator += 25 ) {
+    $currentCanvas.drawText({
+        layer:true,
+        fillStyle: '#9cf',
+        strokeStyle: graphColor,
+        strokeWidth: 0.5,
+        x: 15, 
+        y: 130 - percentageIndicator,
+        fontSize: 10,
+        fontFamily: 'Verdana, sans-serif',
+        text: percentageIndicator  + "%"        
+    });      
+  }  
+  //draw the percentage indicators right side
+  for ( percentageIndicator = 0; percentageIndicator <= 100; percentageIndicator += 25 ) {
+    $currentCanvas.drawText({
+        layer:true,
+        fillStyle: '#9cf',
+        strokeStyle: graphColor,
+        strokeWidth: 0.5,
+        x: 845, 
+        y: 130 - percentageIndicator,
+        fontSize: 10,
+        fontFamily: 'Verdana, sans-serif',
+        text: percentageIndicator  + "%"        
+    });      
+  }
+  //draw the 0-24h indicators    
+  var coordinateCounter = 1;
+  for ( currentIndicator = 0; currentIndicator <= 86400; currentIndicator += 3600 ) {
+    $currentCanvas.drawText({          
+        layer:true,
+        fillStyle: '#9cf',
+        strokeStyle: graphColor,
+        strokeWidth: 0.5,
+        x: currentIndicator / 108 + 30, 
+        y: 138,
+        fontSize: 10,
+        fontFamily: 'Verdana, sans-serif',
+        text: coordinateCounter - 1 +"h"         
+    });
+    coordinateCounter++;
+  };
+}    //function drawGraphAxisAndHours()
+
+function drawChannelGraph( thisChannel ) {      ///draw a channel graph, and draw the current channel with a thicker line
+  if ( thisChannel == currentChannel ) {
+    lineOpacity = 1;
+    lineWidth = 2;
+  }
+  else {
+    lineOpacity = 0.25;
+    lineWidth = 1;
+  }
+  var timerGraph = {
+    layer:true,
+    name:'channel' + thisChannel,
+    type:'line',
+    strokeStyle: channelColor[thisChannel],     
+    strokeWidth: lineWidth,
+    rounded: true,
+    opacity:lineOpacity,
+    color:channelColor[thisChannel],
+    closed:false   
+  }
+    
+  // Add the points from the timerObject array to the timerGraph object
+
+  for (var p = 0; p < timerObject['channel' + thisChannel].length ; p++) {
+    //console.log(timerObject['channel' + thisChannel][p]);
+    timerGraph['x'+(p+1)] = timerObject['channel' + thisChannel][p].time  / 108  + 30;
+    timerGraph['y'+(p+1)] = 130 - timerObject['channel' + thisChannel][p].intensity;
+  }          
+  
+  timerGraph['x' + ( timerObject['channel' + thisChannel].length + 1 )] = 86400 / 108 + 30;
+  timerGraph['y' + ( timerObject['channel' + thisChannel].length + 1 )] = timerGraph['y1'];   
+  
+  //remove the old layer
+  $currentCanvas.removeLayer('channel' + thisChannel).drawLayers();
+  
+  $currentCanvas.drawLine( timerGraph );  
+}  //function drawChannelGraph()
+
+function refreshGraph(){
+  for (thisChannel = 0; thisChannel < numberOfChannels; thisChannel++ ) {
+    drawChannelGraph(thisChannel);
+  }
+
+
+  //draw the current channel name
+  $currentCanvas.removeLayer('channelName').drawText({
+    name: 'channelName',
+    layer:true,
+    fillStyle: channelColor[currentChannel],
+    strokeStyle: channelColor[currentChannel],
+    strokeWidth: 0,
+    x: 860 / 2, 
+    y: 15,
+    fontSize: 27,
+    fontFamily: 'Verdana, sans-serif',
+    text: channelName[ currentChannel ] //'channel' + ( currentChannel + 1  )      
+  });  
+}  
+
+function drawCurrentTimerIndicator(){
+    $currentCanvas.removeLayer('indicatorLayer');
+    //console.log('Draw indicator routine currentTimer: ' + currentTimer);
+    $currentCanvas.addLayer( {
+      name:        'indicatorLayer',
+      type:        'line',
+      strokeStyle: channelColor[currentChannel],
+      strokeWidth: 1,
+      rounded:     true,
+      layer:       true,
+      x1:          (timerObject['channel' + currentChannel][currentTimer].time  / 108) + 30,
+      y1:          130 - timerObject['channel' + currentChannel][currentTimer].intensity,
+      x2:          (timerObject['channel' + currentChannel][currentTimer].time  / 108) + 30,
+      y2:          150
+    })
+    .drawLayers();  
+    $('#timerList p.item').css('background-color', backgroundColor);
+
+    $('#timerList p.item').eq( currentTimer ).css('background-color', channelColor[currentChannel]);
+    
+}
+function updateTimerList() {
+  $('#timerList').html('');
+for ( thisTimer = 0; thisTimer < timerObject['channel' + currentChannel].length ; thisTimer++ ) {
+  //console.log(timerObject['channel' + thisChannel][thisTimer]);
+  $('#timerList').append(   '<p class="item">'
+                          + '<input class="timeInput" type="text" name="time" value="'+ formattedTime( timerObject['channel' + currentChannel][thisTimer].time ).slice(0,5) +  '" pattern="^([0-1]?[0-9]|2[0-4]):([0-5][0-9])(:[0-5][0-9])?$" readonly>'
+                          + '<input class="percentInput" type="number" value="'+ timerObject['channel' + currentChannel][thisTimer].intensity + '" min="00" max="100">'
+                          + '<input class="deleteButton" type="button" value="DELETE">'
+                          + '</p>'
+                       );
+  }
+        
+} ///function updateTimerList
+
+function updateScreen(){
+  refreshGraph();
+  updateTimerList();
+  drawCurrentTimerIndicator();
+  $("#confirmDialog").hide();
+  $('INPUT, BUTTON').attr('disabled',false);
+  $( '#timerList input.timeInput' )/*.eq(0)*/.attr( 'disabled' , 'disabled' );         
+  $( '#timerList input.deleteButton' ).eq(0).attr( 'disabled' , 'disabled' ); 
+  $( '#timerList p.item').eq(currentTimer).click();
+  $( '#timerList p.item').eq(currentTimer).get(0).scrollIntoView();
+}  
+
+function sleepFor( sleepDuration ){
+    var now = new Date().getTime();
+    while(new Date().getTime() < now + sleepDuration){ /* do nothing */ } 
+}
+
+function getAllTimers() {
+  var receivedChannel = 0;
+  for (thisChannel = 0; thisChannel < numberOfChannels; thisChannel++ ) {   
+    console.log("Fetching channel " + thisChannel); 
+    $("#confirmText").append("Fetching channel " + thisChannel + "<br>"); 
+    $.get( apiPrefix + '/api/timers?channel=' + thisChannel , function( data ) {
+      console.log("Received channel " + receivedChannel );
+      var timerSet = data.split('-');
+      for (var p = 0; p < timerSet.length - 1 ; p++) {
+        var dataPair = timerSet[p].split(",");
+        timerObject['channel' + receivedChannel].push( { 'time': dataPair[0], 'intensity': dataPair[1] } );
+      }    
+      $('input.channelSelectionButton').eq( receivedChannel ).prop( 'disabled' , false );
+      receivedChannel++;
+    });
+    sleepFor(waitTime);       
+  } 
+  currentTimer = 0;
+}
+
+function updateNowIndicator(){
+  $.get( apiPrefix + "/api/getpercentage",function( data ) {
+    var statusData = data.split(",");
+    if ( statusData[5].indexOf(":") == 1 ) {
+      statusData[5] = " " + statusData[5];
+    }
+    var timePosition = timeInSeconds( statusData[5] );
+    timePosition = timePosition / 108 + 30;
+    $currentCanvas.removeLayer("nowIndicator");
+    $currentCanvas.removeLayer("nowIndicatorText");
+      $currentCanvas.drawLine({
+      opacity: 0.5,
+      name : "nowIndicator",
+      layer: true,
+      strokeStyle: '#fff',
+      strokeWidth: 1,
+      x1: timePosition , y1: 25,
+      x2: timePosition , y2: 145
+    }).drawLayers();      
+    //Put the text 'now' under the indicator
+    $currentCanvas.drawText({
+      opacity: 0.5,
+      name : "nowIndicatorText",
+      layer: true,
+      fillStyle: '#fff',
+      strokeStyle: '#fff',
+      strokeWidth: 0.75,
+      x: timePosition, y: 150,
+      fontSize: 11,
+      fontFamily: 'Verdana, sans-serif',
+      text: statusData[5].substring(0,5)
+    }).drawLayers();
+  });  
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+//Here starts the horror
+
+var numberOfChannels  =  5;
+var maxNumberOfTimers = 50;
+var currentChannel    =  0; 
+var currentTimer      =  0;
+               
+var timerObject = {'channel0':[],
+                   'channel1':[],
+                   'channel2':[],
+                   'channel3':[],
+                   'channel4':[]
+                   }; //stores the timers for 5 channels as arrays
+
+var $currentCanvas = $('#channelEditCanvas');
+
+var backgroundColor = 'grey';
+var graphColor =      'yellow';
+var channelColor =   [ 'white', 'white', 'white', 'white', 'white', ];
+var channelName =   [];
+
+///////////////////////////////////////////////////////////////////////////////////////
+
+$(document).ready( function() {
+  
+  //disable all channelSelectionButton
+  $('input.channelSelectionButton').prop('disabled',true);
+    
+  if (DEBUG_API) {
+    apiPrefix = debugURL;
+    $("#machineDescription").html("!!NO PRODUCTION MACHINE. DEBUG API USED!!");
+  } else {
+    sleepFor( waitTime );    
+    $.get( apiPrefix + "/api/hostname", function( data ) {
+      $( "#machineDescription" ).html( data );
+      document.title = data;
+    });  
+  } 
+    
+  sleepFor(waitTime);
+  
+  //get the channelcolors
+  $.get( apiPrefix + "/api/channelcolors" , function( data ){
+    channelColor = data.split("|");
+    $('input.channelSelectionButton').first().css("color",channelColor[0]).css("background-color","#444");;
+
+  });
+
+  sleepFor(waitTime);
+
+  //get the channelnames
+  $.get( apiPrefix + "/api/channelnames" , function( data ){
+    channelName = data.split("|");
+    $('input.channelSelectionButton').each( function( index ) {
+      $( this ).val( channelName[ index ] );
+    });
+  });
+  
+  sleepFor(waitTime);
+ 
+  //draw the graph axis and the hour indicators
+  drawGraphAxisAndHours(); 
+  
+  updateNowIndicator();
+  
+  var nowUpdater = setInterval( function() { updateNowIndicator(); }, 10000);
+  
+  sleepFor(waitTime);
+  
+  //send the requests staggered 
+  getAllTimers();
+
+  ///wait for the requests to complete before starting main loop
+  var test = setTimeout( updateScreen , waitTime );
+
+  
+  //setup the event handlers 
+    
+  $('#channelControlBar').on('click','input.channelSelectionButton', function( ) {
+    //console.log($(this).index('input.channelSelectionButton'));
+    currentChannel = $(this).index('input.channelSelectionButton');
+    $('input.channelSelectionButton').css("background-color","buttonface");
+    $('input.channelSelectionButton').css("color","buttontext");
+    $(this).css("background-color","#444");
+    $(this).css("color",channelColor[currentChannel]);
+    currentTimer = 0;
+    updateScreen();
+  });
+
+  $('#timerList').on('click','input.deleteButton',function( e ){
+    e.stopPropagation();     
+    console.log('Deleting item ' + $(this).parents('p').index() );
+    //do not delete first timer of each channel
+    if ( $(this).parents('p').index() > 0 ) {
+      timerObject['channel' + currentChannel].splice( $(this).parents('p').index(), 1 );
+      currentTimer = $(this).parent('p').index() - 1;
+      updateScreen();
+    }
+  });
+
+  
+  
+  $('#newTimer').on('click','input.addButton', function() {
+    if ( ( $('#newTimer .timeInput').val().slice(2,3) == ':' )  ) {   //quick & dirty data check, obviously not very robust
+      //check if the time is already in the list
+      var timerAlreadySet = false;
+      var insertPosition = 0;
+      $('#timerList p.item input.timeInput').each( function( index ) {
+        //is this timer later than the one we want to insert?      
+        if ( timeInSeconds( $( this ).val() ) < timeInSeconds( $('input.timeInput').val() ) ) {
+          insertPosition++;    
+        }      
+        //is this timer equal to another already set timer ?
+        if ( $(this).val().slice(0,5) == $('input.timeInput').val() ) {
+          $('#timerList p.item').eq( index ).click();
+          $('#timerList p.item').eq( index ).get(0).scrollIntoView();
+          timerAlreadySet = true;
+          currentTimer = insertPosition;
+          updateScreen();
+        }
+      });       
+      console.log('New timer input: ' + $('#newTimer input.timeInput').val());
+      console.log("Number of timers already in this channel: " + timerObject['channel' + currentChannel].length); 
+      if ( !timerAlreadySet && timerObject['channel' + currentChannel].length < maxNumberOfTimers ) {      
+        timerObject['channel' + currentChannel].splice( insertPosition, 0, { 'time':timeInSeconds( $('#newTimer input.timeInput').val() ) , 'intensity':$('#newTimer input#percentageInput').val() } );
+        currentTimer = insertPosition;       
+        updateScreen();
+        $('#timerList p.item').eq( insertPosition ).click();
+        $('#timerList p.item').eq( insertPosition ).get(0).scrollIntoView();        
+        console.log('Item inserted in channel ' + currentChannel + ' at position ' + insertPosition );
+        $('#newTimer input.timeInput').val('');
+        $('#newTimer input#percentageInput').val('0'); 
+      }      
+    }
+    else {
+      console.log('Invalid time input. No action required.' );
+    }
+  });
+  
+  $('#timerList').on('focus mousedown','p.item', function( e ) {
+    //e.stopPropagation();
+    currentTimer = $(this).index();
+    drawCurrentTimerIndicator();
+  });
+
+
+  $('#timerList').on('input', 'input.percentInput', function( event  ) {
+    event.stopPropagation();
+    if ( $(this).val() !== "" && $(this).val() <= 100 && $(this).val() >= 0 )  {    
+      timerObject['channel' + currentChannel][$(this).parent('p.item').index()].intensity =  $(this).val();
+      drawCurrentTimerIndicator();
+      refreshGraph();
+      $(this).css('background-color','white');
+    } else {
+      $(this).css('background-color','orange');
+    }
+  });
+ 
+  $('#timerControlBar').on('click', 'input#goStart', function() {
+    currentTimer = 0;
+    $('#timerList p.item').css('background-color', backgroundColor);   
+    $('#timerList p.item').eq( currentTimer ).get(0).scrollIntoView(); 
+    $('#timerList p.item .percentInput').eq( currentTimer ).focus();
+  });
+  
+  $('#timerControlBar').on('click', 'input#goForward', function() {
+    if (currentTimer < timerObject['channel' + currentChannel].length - 1) {
+      currentTimer++;
+    }
+    $('#timerList p.item').css('background-color', backgroundColor);   
+    $('#timerList p.item .percentInput').eq( currentTimer ).focus();  
+    $('#timerList p.item').eq( currentTimer ).get(0).scrollIntoView(); 
+  });
+      
+  $('#timerControlBar').on('click', 'input#goBack', function() {
+    if (currentTimer > 0 ) {
+      currentTimer--;
+    }
+    $('#timerList p.item').css('background-color', backgroundColor);   
+    $('#timerList p.item').eq( currentTimer ).get(0).scrollIntoView(); 
+    $('#timerList p.item .percentInput').eq( currentTimer ).focus();
+  });
+  
+  $('#timerControlBar').on('click', 'input#goEnd', function() {
+    currentTimer = timerObject['channel' + currentChannel].length - 1;
+    $('#timerList p.item').css('background-color', backgroundColor);   
+    $('#timerList p.item').eq( currentTimer ).get(0).scrollIntoView(); 
+    $('#timerList p.item .percentInput').eq( currentTimer ).focus();
+  });
+  
+  var confirmTimeout;   //the overlay div used for messages - eg. Click to close.
+  $('body').on('click','input#confirmCloseButton', function( ) {
+    clearTimeout( confirmTimeout );
+    $('INPUT, BUTTON').attr('disabled',false);
+    $('div#confirmDialog').hide();
+    $( '#timerList .deleteButton' ).eq(0).attr('disabled','disabled');
+  });
+  
+  $('#channelContainer').on('click','input#storeButton', function(  ){
+    $('INPUT, BUTTON').attr('disabled',true);
+    var receivedChannels = 0;
+    $("#confirmText").html("Uploading data...<br>");
+    $("#confirmDialog").show();
+    for (thisChannel = 0; thisChannel < numberOfChannels; thisChannel++ ) {
+      var channelData = thisChannel + "-";  ///contains the channelnumber 
+      for (thisTimer = 0; thisTimer < timerObject["channel" + thisChannel].length; thisTimer++ ) {
+        channelData += timerObject["channel" + thisChannel][thisTimer].time + ",";
+        channelData += timerObject["channel" + thisChannel][thisTimer].intensity + "-";
+      }
+      $.get( apiPrefix + "/api/settimers?"  + channelData ,function( data ){
+        console.log(data);
+        receivedChannels++;        
+        $("#confirmText").append( "Channel " + receivedChannels + " uploaded.<br>" );
+        if (receivedChannels == numberOfChannels) {
+          //$("#confirmText").append("Storing timers...<br>");
+          $.get( apiPrefix + "/api/store" ,function( data ){
+            console.log( data );
+            $("#confirmText").append( data + '<br><br><div><input id="confirmCloseButton" type="button" value="Click to close."/></div>');
+            confirmTimeout = setTimeout(function() {$("#confirmDialog #confirmCloseButton").click(); }, 6000);            
+          })
+        }
+      }) 
+      sleepFor(waitTime);     
+    }
+  });
+  
+  $('#channelContainer').on('click','input#clearButton', function(){    
+    for (thisChannel = 0; thisChannel < numberOfChannels; thisChannel++ ) {
+      timerObject["channel" + thisChannel ].splice( 0,timerObject["channel" + thisChannel ].length);
+      timerObject["channel" + thisChannel ].push( { 'time': 0, 'intensity': 0 } );
+    }
+    currentTimer = 0;
+    $currentCanvas.removeLayer('indicatorLayer');
+    updateScreen();
+  });
+  
+  $('#channelContainer').on('click','input#reloadButton', function(){   
+    $('INPUT, BUTTON').attr('disabled',true);
+    $("#confirmText").html("Loading data...<br>");
+    $("#confirmDialog").show();
+    for (thisChannel = 0; thisChannel < numberOfChannels; thisChannel++ ) {
+      timerObject["channel" + thisChannel ].splice( 0,timerObject["channel" + thisChannel ].length);
+    }
+    $currentCanvas.removeLayer('indicatorLayer');
+    getAllTimers();
+    var test = setTimeout( updateScreen , waitTime );
+  });
+  
+  $('#graphContainer').on('click','#channelEditCanvas',function( event ) {
+    if ( event.offsetX >= 30 && event.offsetX <= 830 && event.offsetY >= 30 && event.offsetY <= 130 ){
+      var clickedTime = ( event.offsetX - 30 ) * 108;
+      $('#newTimer input.timeInput').val(formattedTime( clickedTime ).slice(0,5));
+      $('#newTimer input#percentageInput').val( (130 - event.offsetY ) );
+      $('#newTimer input.addButton').click();
+    }
+  });
+  
+  $('#graphContainer').on('mousemove','#channelEditCanvas',function( event ) {
+    if ( event.offsetX >= 30 && event.offsetX <= 830 && event.offsetY >= 30 && event.offsetY <= 130 ){
+      $('#newTimer input.timeInput').val(formattedTime( ( event.offsetX - 30 ) * 108 ).slice(0,5));
+      $('#newTimer input#percentageInput').val( (130 - event.offsetY + "%") );
+    }
+  });  
+  
+  $('#graphContainer').on('mouseout','#channelEditCanvas',function( event ) {
+    $('#newTimer input.timeInput, #newTimer input#percentageInput').val('');
+  });
+  
+});    
+</script>  
+</body>
+</html>

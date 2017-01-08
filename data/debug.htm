@@ -1,0 +1,176 @@
+<!doctype html>
+<script>
+var DEBUG_API = false;   //if set to true then 'debugURL' will be prepended to the (relative) api URLs
+var apiPrefix = '';
+var debugURL = 'http://thuis.wasietsmet.nl:88';
+var waitTime = 100;     //time in ms between calls to the controller -- might overload and reset when set too low!
+</script>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Debug Aquacontrol</title>
+<meta name="description" content="Aquacontrol system debug page">
+<meta name="author" content="Cellie 2016">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<!--https://cdnjs.com/libraries/jcanvas-->
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/jcanvas/16.7.3/jcanvas.js"></script>-->
+<style>
+html, body{
+  height:100%;
+  margin:0 auto;
+  background-color:grey;
+  text-align:center;
+  width:860px;
+  min-width:860px;
+  font-variant: small-caps;
+  font-size:20px;
+  color:black;
+}
+a {
+  color:yellow;
+  text-decoration:none;
+}
+
+div, p{
+  margin:3px 0;
+}
+
+div.timeSetup{
+  margin:3px 0;
+  min-height:40px;
+}
+
+p.item{
+  text-align:right;
+  background-color:beige;
+}
+
+p.title{
+  background-color:beige;
+}
+
+p.status{
+  text-align:center;
+}
+input, select{
+  margin:8px;
+  width:130px;
+  height:25px;}
+
+input[type="button"], input[type="time"], select {
+  width:130px;
+  height:25px;
+  font-variant: small-caps;
+  font-size:18px;
+  }
+
+#topContainer {
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  width:860px;
+  margin:3px auto;
+  border: solid 1px yellow;
+}
+
+#bottomContainer {
+  position:absolute;
+  top:285px;
+  bottom:0;
+  left:0;
+  right:0;
+  width:800px;
+  margin:3px auto;
+  border: solid 1px yellow;
+}
+
+#machineDescription{
+  color:blue;
+}
+</style>
+</head>
+
+<body>
+  <!--<div id="confirmDialog"><div id="confirmText">Loading...</div></div>  -->
+
+  <div id="topContainer">
+  <a href="index.htm">status</a>&nbsp;-&nbsp;<a href="setup.htm">setup</a>
+  <p id="machineDescription"><script></script></p>
+    <div class="logSetup">
+      <p class="title">LOG SETTINGS</p>
+      <p id="logStatus" class="item status">&nbsp;</p>
+      <p class="item status" >
+        <input id="noLog" type="button" value="NO LOGS" onClick=noLog()>
+        <input id="channelLog" type="button" value="LIGHT LOG" onClick=channelLog()>
+        <input id="httpLog" type="button" value="HTTP LOG" onClick=httpLog()>
+        <input id="apiLog" type="button" value="API LOG" onClick=apiLog()>
+        <input id="memoryLog" type="button" value="RAM LOG" onClick=ramLog()>
+      </p>
+      <p class="item status" id="cpuSpeed">CPU speed: </p>
+      <p class="item status" id="version">Version: </p>
+      <p class="item status" id="bootTime">Boot time: </p>
+    </div>
+  </div>
+
+<script>
+if (DEBUG_API) {
+  apiPrefix = debugURL;
+  $("#machineDescription").html("!!NO PRODUCTION MACHINE. DEBUG API USED!!");
+} else {
+  $("#machineDescription").html("Loading machine description...").load("/machinedescription.txt");
+}
+</script>
+<script>
+function noLog() {
+  console.log('no logging');
+  $("#logStatus").load( apiPrefix + "/api/nolog");
+}
+function channelLog() {
+  console.log('toggling channel logging');
+  $("#logStatus").load( apiPrefix + "/api/channellog");
+}
+function httpLog() {
+  console.log('toggling http logging');
+  $("#logStatus").load( apiPrefix + "/api/httplog");
+}
+function apiLog() {
+  console.log('toggling channel logging');
+  $("#logStatus").load( apiPrefix + "/api/apilog");
+}
+function ramLog() {
+  console.log('toggling channel logging');
+  $("#logStatus").load( apiPrefix + "/api/ramlog");
+}
+
+function sleepFor( sleepDuration ){
+    var now = new Date().getTime();
+    while(new Date().getTime() < now + sleepDuration){ /* do nothing */ }
+}
+
+$(document).ready(function() {
+
+  sleepFor(waitTime);
+
+  $.get( apiPrefix + "/api/cpuspeed ", function( data ){
+    $("#cpuSpeed").append( data + "Mhz" );
+  });
+
+  sleepFor(waitTime);
+
+  $.get( apiPrefix + "/api/version ", function( data ){
+    $("#version").append( data );
+  });
+
+  sleepFor(waitTime);
+
+  $.get( apiPrefix + "/api/boottime ", function( data ){
+    // * 1000  because JS timers are millisecond based, while a C++ time_t is second based. (on arduino & esp8266)
+    var bootDate = new Date( data * 1000 );
+    $("#bootTime").append( bootDate.toString() );
+  });
+
+});
+</script>
+</body>
+</html>

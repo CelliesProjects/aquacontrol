@@ -471,6 +471,13 @@ static const String apiHeaders =  F(
     //get the time in seconds and set the NTP sync accordingly.
     String timeOffset = request.substring( request.indexOf("?") + 1 , request.lastIndexOf(" ") );
     unsigned long  newSyncDelay = timeOffset.toInt();
+
+    if ( newSyncDelay < 300 ) {
+      serverClient.print( apiHeaders + F( "ERROR: NTP sync delay too small. ( minimum = 300 sec )" ) );
+      serverClient.stop();
+      return;      
+    }
+    
     ntpSyncDelay = newSyncDelay;
     nextSyncTime = now() + newSyncDelay;
     //nextSyncTime += newSyncDelay;

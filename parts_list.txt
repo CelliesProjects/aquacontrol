@@ -1,0 +1,11 @@
+1x WeMos D1 mini - ebay
+5x IRLZ44 N mosfets - ebay
+5x 470R gate resistors - ebay
+2x 4K7 pull-up resistor for I2C SDL + SDA - ebay
+3x breadboard PCB - hackerstore.nl
+1x 128 x 64 OLED - ebay
+1x 7805 voltage regulator - ebay
+1x 6 block screw terminal - ebay
+1x 2.1x5mm power jack breadboard friendly - kiwi electronics
+
+And some wire to hook things up.

@@ -189,6 +189,19 @@ void setup() {
     };
   }
 
+  //check if index.htm is present and stop if it is not
+  if ( !SPIFFS.exists( "/index.htm" ) ) {
+    OLED.clear();
+    OLED.setTextAlignment( TEXT_ALIGN_CENTER );
+    OLED.setFont( ArialMT_Plain_16 );
+    OLED.drawString( 64, 30, F("NO INDEX!" ) );
+    OLED.display();
+    while (true) {
+      delay(100); /* wait forever */
+      yield();
+    };    
+  }
+
   //now we have a spiffs disk and can setup WiFi
 
   //thisFile will be re-used throughout the whole setup() routine

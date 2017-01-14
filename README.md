@@ -6,8 +6,11 @@ Using a Wemos D1 mini MCU and custom hardware
 See http://wasietsmet.nl/tag/aquacontrol/
 
 Needed libraries:
+
 https://github.com/pasko-zh/brzo_i2c
+
 https://github.com/squix78/esp8266-oled-ssd1306
+
 https://github.com/PaulStoffregen/Time
 
 Hardware:

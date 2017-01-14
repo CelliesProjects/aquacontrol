@@ -5,6 +5,7 @@ Using a Wemos D1 mini MCU and custom hardware
 
 See http://wasietsmet.nl/tag/aquacontrol/
 
+
 Needed libraries:
 
 https://github.com/pasko-zh/brzo_i2c
@@ -12,6 +13,12 @@ https://github.com/pasko-zh/brzo_i2c
 https://github.com/squix78/esp8266-oled-ssd1306
 
 https://github.com/PaulStoffregen/Time
+
+SPIFFS file upload plugin for Arduino IDE:
+
+https://github.com/esp8266/arduino-esp8266fs-plugin
+
+Follow the installation instructions on the GitHub page.
 
 Hardware:
 ![ScreenShot](http://wasietsmet.nl/wp-content/uploads/2016/11/OLEDflash1.jpg)

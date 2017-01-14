@@ -29,9 +29,16 @@ extern "C" {
 #include <DNSServer.h>
 //#include <ESP8266WebServer.h>
 #include <WiFiUdp.h>
+
+//https://github.com/pasko-zh/brzo_i2c
 //#include <brzo_i2c.h> // Only needed for Arduino 1.6.5 and earlier
+
+//https://github.com/squix78/esp8266-oled-ssd1306
 #include "SSD1306Brzo.h"
+
+//https://github.com/PaulStoffregen/Time
 #include <Time.h>
+
 #include <Ticker.h>
 #include <FS.h>
 

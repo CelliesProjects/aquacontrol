@@ -52,7 +52,7 @@ String myPSK                           = "networkpass" ;
 String hostName                      =  "aquacontrol";
 
 const String programName             = "Aquacontrol8266";
-const String programVersion          = "0.91 beta";
+const String programVersion          = __DATE__;
 int cpuSpeed                         = 160;                          //in MHz - either 80 or 160 for esp8266
 
 const char* ntpServerName            = "nl.pool.ntp.org";          //http://www.pool.ntp.org/use.html

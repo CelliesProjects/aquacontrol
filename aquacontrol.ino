@@ -147,7 +147,6 @@ SSD1306Brzo  OLED( OLEDaddress, SDA_pin, SCL_pin );
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void setup() {
-  WiFi.persistent(false);
   system_update_cpu_freq(cpuSpeed);  //todo: make adjustable in web interface AND SAVEable!!!!
 
   //setup channel names and set OUTPUT pinModes just in case...
@@ -295,6 +294,13 @@ void setup() {
     Serial.print( F("Default NTP sync delay set to: ") );  Serial.println( ntpSyncDelay );
   }
 
+  //check if hostname is correct
+  if ( hostName != WiFi.hostname() ) {
+    Serial.println( F("Difference between hostnames. Adjusting and reconnecting...") );
+    WiFi.hostname(hostName);
+    WiFi.reconnect();
+  }
+  
   //check for channelnames on disk and setup accordingly
   thisFile = SPIFFS.open( channelNamesFile , "r");
   byte thisChannel = 0;

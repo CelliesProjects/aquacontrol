@@ -213,7 +213,7 @@ void setup() {
   //thisFile will be re-used throughout the whole setup() routine
   File thisFile;
 
-  //check if we have WiFi credentials on disk --  if commented out, hardwired credentials will be used
+  //check if we have WiFi credentials on disk 
   thisFile = SPIFFS.open( wifiDataFile , "r");
   if ( thisFile ) {
     while (thisFile.available()) {
@@ -226,7 +226,7 @@ void setup() {
     }
     thisFile.close();
   } else {
-    //WiFi.mode(WIFI_AP);
+    //no WiFi credentials found, start an accesspoint to setup WiFi
     startAP();
   }
 

@@ -99,12 +99,11 @@ void startAP(){
   OLED.clear();
   OLED.setTextAlignment(TEXT_ALIGN_CENTER);
   OLED.setFont(ArialMT_Plain_10);
-  OLED.drawString(64,0, F("No WiFi found") );
-  OLED.drawString(64,8, F("Connect to AP:") );
-  OLED.setFont(ArialMT_Plain_24);
-  OLED.drawString(64,16,accessPointName);
-  OLED.setFont(ArialMT_Plain_10);
-  OLED.drawString(64,40, F("to setup this device") );
+  OLED.drawString(64,0, F("Connect to AP:") );
+  OLED.drawString(64,12,accessPointName);
+  OLED.drawString(64,26, F( "IP:" ) );
+  OLED.drawString(64,38,accessPointIP.toString() );
+  OLED.drawString(64,52, F("to setup this device") );
   OLED.display();
 
   WiFi.mode( WIFI_AP );

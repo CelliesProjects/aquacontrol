@@ -52,7 +52,7 @@ String myPSK                           = "networkpass" ;
 String hostName                      =  "aquacontrol";
 
 const String programName             = "Aquacontrol8266";
-const String programVersion          = __DATE__;
+const String compileDate          = __DATE__;
 int cpuSpeed                         = 160;                          //in MHz - either 80 or 160 for esp8266
 
 const char* ntpServerName            = "nl.pool.ntp.org";          //http://www.pool.ntp.org/use.html
@@ -167,14 +167,11 @@ void setup() {
   Serial.println();
 
   //program info
+  Serial.println( programName + F(" ") + compileDate );
+  Serial.println();
   Serial.print( F( "Timers memory requirement: " ) );  Serial.print( sizeof( channel ) ) ;  Serial.println( F( " bytes" ) );
   Serial.print( ESP.getFreeHeap() );  Serial.println( F(" bytes of free RAM memory.") );
   Serial.println();
-  Serial.print( F("Source file: " ) ); Serial.println(__FILE__);
-  Serial.print( F("Compiled at: " ) ); Serial.print(__DATE__); Serial.print(" "); Serial.println(__TIME__);
-  Serial.println();
-  Serial.println( programName + F(" ") + programVersion );
-
 
   //check if SPIFFS fs is present
   //  FSInfo fs_info;

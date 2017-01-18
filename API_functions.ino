@@ -119,7 +119,7 @@ static const String apiHeaders =  F(
   }
 
   if ( request.indexOf( F( "/api/version " ) ) == atRequestPosition ) {
-    serverClient.print( apiHeaders + programVersion );
+    serverClient.print( apiHeaders + compileDate );
     serverClient.stop();
   }
 

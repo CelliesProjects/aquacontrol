@@ -30,11 +30,7 @@ extern "C" {
 //#include <ESP8266WebServer.h>
 #include <WiFiUdp.h>
 
-//https://github.com/pasko-zh/brzo_i2c
-//#include <brzo_i2c.h> // Only needed for Arduino 1.6.5 and earlier
-
-//https://github.com/squix78/esp8266-oled-ssd1306
-#include "SSD1306Brzo.h"
+#include "SSD1306.h"
 
 //https://github.com/PaulStoffregen/Time
 #include <Time.h>
@@ -138,9 +134,8 @@ WiFiClient serverClient;                                                   // A 
 WiFiServer server(80);                                                  //and a server instance
 
 Ticker channelUpdateTimer;                                              //for the channel updates
-//Ticker OLEDUpdateTimer;                                              //for the OLED updates
 
-SSD1306Brzo  OLED( OLEDaddress, SDA_pin, SCL_pin );
+SSD1306  OLED( OLEDaddress, SDA_pin, SCL_pin );
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -522,6 +517,14 @@ void loop() {
     }
   }
 
+  if (programOverride) {
+    OLED.invertDisplay();
+  }
+  else {
+    OLED.normalDisplay();
+  }
+  updateOLEDstring();
+  
   if ( memoryLogging ) {
     //show mem usage
     int nowFreeRAM = ESP.getFreeHeap();

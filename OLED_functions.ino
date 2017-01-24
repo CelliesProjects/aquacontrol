@@ -13,6 +13,9 @@ void updateOLEDbar(){
   OLED.display();
 }
 
+time_t nextOLEDswitch = now() + 5;                   //switch between showing IP or hostname every 5 seconds            
+bool showIP = true; 
+
 void updateOLEDstring(){
   OLED.clear();
   OLED.setTextAlignment(TEXT_ALIGN_RIGHT);
@@ -24,7 +27,11 @@ void updateOLEDstring(){
   OLED.setFont(ArialMT_Plain_16);
   OLED.drawString( 45, 10 ,formattedTime( localTime() ) );
   OLED.setFont(ArialMT_Plain_10);
-  OLED.drawString( 64, 50, WiFi.hostname() );
+  if ( now() >= nextOLEDswitch ) {
+    showIP = !showIP;
+    nextOLEDswitch = now() + 5;
+  }
+  OLED.drawString( 64, 50, showIP ? WiFi.localIP().toString() : WiFi.hostname() );
   OLED.display();
 }
 

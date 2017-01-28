@@ -1,3 +1,4 @@
+
 //part of aquacontrol
 //global vars --TOO MANY!!
 //setup and loop
@@ -76,7 +77,7 @@ time_t       bootTime;                                                // Keep tr
 time_t       lastSyncTime;
 time_t       nextSyncTime;
 time_t       ntpSyncDelay           = 86400;                          //in seconds
-//bool         dstSet                 = false;                          // daylight savings time - set via webinterface
+
 int          timeZone;
 const String dstFile                = "/dst.txt";
 const String timeZoneFile           = "/timezone.txt";
@@ -86,7 +87,6 @@ const String ntpDelayFile           = "/ntpdelay.txt";
 //OLED settings
 
 const byte OLEDaddress              = 0x3c;
-//const byte OLEDpowerPin           = D0;                           //might or might not be implemented - eg switch off the power to the oled
 
 //filenames for setting files on spiffs
 const String wifiDataFile           = "/wifidata.txt";

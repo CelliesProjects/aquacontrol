@@ -14,9 +14,8 @@ void updateOLEDbar(){
     OLED.setTextAlignment( TEXT_ALIGN_CENTER );
     OLED.drawString( 2 + x1 + barWidth / 2, y1 - 11, String( (int) channel[thisChannel].currentPercentage ) );
   }
-  OLED.drawString( DISPLAY_WIDTH / 2, 0, WiFi.hostname() );
-  OLED.drawString( DISPLAY_WIDTH / 2, 54, WiFi.localIP().toString() );
-  OLED.display();
+  OLED.drawString( DISPLAY_WIDTH / 2, 0, formattedTime( localTime() ) );
+  showHostname_IP_OLED();
 }
 
 time_t nextOLEDswitch = now() + 5;                   //switch between showing IP or hostname every 5 seconds            
@@ -31,27 +30,17 @@ void updateOLEDstring(){
   }
   OLED.setTextAlignment(TEXT_ALIGN_CENTER);
   OLED.setFont(ArialMT_Plain_16);
-  OLED.drawString( 45, 10 ,formattedTime( localTime() ) );
+  OLED.drawString( 45, 10 ,formattedTime( localTime() ) );  
+  showHostname_IP_OLED();
+}
+
+void showHostname_IP_OLED(){
+  OLED.setTextAlignment(TEXT_ALIGN_CENTER);
   OLED.setFont(ArialMT_Plain_10);
   if ( now() >= nextOLEDswitch ) {
     showIP = !showIP;
     nextOLEDswitch = now() + 5;
   }
-  OLED.drawString( 64, 50, showIP ? WiFi.localIP().toString() : WiFi.hostname() );
+  OLED.drawString( DISPLAY_WIDTH / 2, 54, showIP ? WiFi.localIP().toString() : WiFi.hostname() );
   OLED.display();
-}
-
-void showHostname_IP_OLED(){
-  OLED.setTextAlignment(TEXT_ALIGN_CENTER);
-  OLED.clear();
-  OLED.setFont(ArialMT_Plain_10);
-  OLED.drawString(64,0, F("IP:") );
-  OLED.setFont(ArialMT_Plain_16);
-  OLED.drawString(64,12, WiFi.localIP().toString() );
-  OLED.setFont(ArialMT_Plain_10);
-  OLED.drawString(64,32, F("HOSTNAME:") );
-  hostName.trim();
-  OLED.setFont(ArialMT_Plain_16);
-  OLED.drawString(64,44, hostName );
-  OLED.display();      
 }

@@ -3,13 +3,19 @@
 void updateOLEDbar(){
   int barWidth = DISPLAY_WIDTH / numberOfChannels;
   OLED.clear();
-  for ( byte thisChannel =0; thisChannel < numberOfChannels;thisChannel++){
+  for ( byte thisChannel = 0; thisChannel < numberOfChannels; thisChannel++ ){
     int x1= barWidth * thisChannel;
-    int y1= ( DISPLAY_HEIGHT ) - ( DISPLAY_HEIGHT * ( channel[thisChannel].currentPercentage / 100 ) );
+    int bottomOfBar = DISPLAY_HEIGHT - 11;
+    int y1= ( bottomOfBar ) - ( bottomOfBar * ( channel[thisChannel].currentPercentage / 100 ) ) * 0.6;
     int x2 = barWidth;
-    int y2 = DISPLAY_HEIGHT - y1;
-    OLED.drawRect(x1,y1,x2,y2);
+    int y2 = bottomOfBar - y1;
+    OLED.fillRect( x1 + 2, y1, x2 - 2, y2 );
+    OLED.setFont( ArialMT_Plain_10 );
+    OLED.setTextAlignment( TEXT_ALIGN_CENTER );
+    OLED.drawString( 2 + x1 + barWidth / 2, y1 - 11, String( (int) channel[thisChannel].currentPercentage ) );
   }
+  OLED.drawString( DISPLAY_WIDTH / 2, 0, WiFi.hostname() );
+  OLED.drawString( DISPLAY_WIDTH / 2, 54, WiFi.localIP().toString() );
   OLED.display();
 }
 

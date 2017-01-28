@@ -30,6 +30,7 @@ extern "C" {
 //#include <ESP8266WebServer.h>
 #include <WiFiUdp.h>
 
+//https://github.com/squix78/esp8266-oled-ssd1306
 #include "SSD1306.h"
 
 //https://github.com/PaulStoffregen/Time
@@ -523,7 +524,7 @@ void loop() {
   else {
     OLED.normalDisplay();
   }
-  updateOLEDstring();
+  updateOLEDbar();
   
   if ( memoryLogging ) {
     //show mem usage

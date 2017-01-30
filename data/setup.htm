@@ -409,7 +409,7 @@ $(document).ready( function() {
   sleepFor(waitTime);
 
   updateStatus();
-  var repeatTimer = setInterval(updateStatus,1000);
+  var updateTimer = setInterval(updateStatus,1000);
 
   sleepFor(waitTime);
   
@@ -556,7 +556,8 @@ $(document).ready( function() {
   
   $('body').on('click','input#hostNameButton',function() {
     $.get ( apiPrefix + '/api/hostname?' + $('input#hostNameField').val() , function( data ) {
-      $('#lightStatus').html( data );
+      $('#deviceStatus').html( data );
+      clearInterval(updateTimer);
     });
   });    
   

@@ -20,7 +20,7 @@ Follow the installation instructions on the GitHub page.
 
 Hardware:
 
-![ScreenShot](http://wasietsmet.nl/wp-content/uploads/2016/11/OLEDflash1.jpg)
+![hardware](https://cloud.githubusercontent.com/assets/24290108/22483282/cf936128-e7fc-11e6-9239-b454e0c41f10.jpg)
 
 Screenshots:
 

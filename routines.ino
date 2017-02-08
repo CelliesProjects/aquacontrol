@@ -90,7 +90,7 @@ void updateChannels() {
   }
 }
 
-bool defaultTimers() {                                                      //this function loads the timers or returns FALSE
+bool defaultTimersAreLoaded() {                                                      //this function loads the timers or returns FALSE
   //find 'default.aqu' on SPIFFS disk and if present load the timerdata from this file
   //return false on error
   File f = SPIFFS.open( "/default.aqu", "r" );

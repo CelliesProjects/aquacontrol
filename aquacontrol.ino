@@ -318,9 +318,9 @@ void setup() {
     thisFile.close();
   }
 
-  //check for timers on disk and setup accordingly
-  if ( defaultTimers() ) {
-    Serial.println( F("Default timers found on SPIFFS disk.") );
+  //load timers from disk otherwise ( if no channels are loaded ) set all channels to 0%
+  if ( defaultTimersAreLoaded() ) {
+    Serial.println( F("Default timers loaded from SPIFFS disk.") );
   } else {
     Serial.println( F("No timers on disk. Initializing channels with single timer.") );
     for ( byte thisChannel = 0; thisChannel < numberOfChannels; thisChannel++ ) {

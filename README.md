@@ -1,4 +1,9 @@
+## This project is no longer maintained.
+
+[Follow this link to aquacontrol v2](https://github.com/CelliesProjects/aquacontrol2)
+
 # aquacontrol
+
 5 channel programmable WiFi LED controller (ESP8266)
 
 Using a Wemos D1 mini MCU and custom hardware
